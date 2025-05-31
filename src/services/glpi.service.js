@@ -93,11 +93,44 @@ async function getTickets() {
       headers: { 'Session-Token': sessionToken }
     });
     return response.data;
+  } catch(error) {
+    console.error('Erro ao listar usuários:', error.response?.data || error.message);
+    throw error;
   } finally {
     await killSession();
   }
 }
 
+// função para buscar todos os usuários
+async function getAllUsers(){
+  await initSession();
+  try {
+    const response = await api.get('/User', {
+      headers: { 'Session-Token': sessionToken }
+    });
+    return response.data;
+  } catch(error) {
+    console.error('Erro ao listar usuários:', error.response?.data || error.message);
+    throw error;
+  } finally {
+    await killSession();
+  }
+}
+
+async function getUserById(id) {
+  await initSession();
+  try {
+    const response = await api.get(`/User/${id}`, {
+      headers: { 'Session-Token': sessionToken }
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Erro ao buscar usuário:', error.response?.data || error.message);
+    throw error;
+  } finally {
+    await killSession();
+  }
+}
 // Exporta as funções para serem usadas em outros módulos
 module.exports = {
   getTicketById,
@@ -106,5 +139,8 @@ module.exports = {
   updateTicketStatus,
   deleteTicket,
   killSession,
-  initSession
+  initSession,
+  getAllUsers,
+  getUserById,
+
 };

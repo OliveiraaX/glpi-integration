@@ -3,6 +3,7 @@ const router = express.Router();
 
 // Importa o controller de tickets que contém as funções de lógica de cada rota
 const ticketsController = require('../controllers/tickets.controller');
+const usersController = require('../controllers/users.controller');
 
 // GET específico (por ID)
 router.get('/:id', ticketsController.getTicketById);

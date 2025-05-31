@@ -26,20 +26,24 @@ module.exports = {
       if (!ticket) {
         return res.status(404).json({ error: 'Ticket não encontrado.' });
       }
-
-      // Filtra apenas os campos desejados para resposta
+      // Busca os dados completos do agente
+      let agentInfo = null;
+      if (ticket.users_id_assign) {
+        agentInfo = await glpiService.getUserById(ticket.users_id_assign);
+      }
       const filteredTicket = {
         id: ticket.id,
         name: ticket.name,
-        description: ticket.content,  // "content" representa a descrição no GLPI
-        status: mapStatus(ticket.status),       // Traduz status numérico para texto
-        priority: mapPriority(ticket.priority)  // Traduz prioridade numérica para texto
+        description: ticket.content,
+        status: mapStatus(ticket.status),
+        priority: mapPriority(ticket.priority),
+        agent: agentInfo  
       };
-
-      // Retorna o ticket filtrado como JSON
+      console.log('Ticket completo:', ticket);
+      
       res.json(filteredTicket);
-
-    } catch (error) {
+    }
+     catch (error) {
       console.error('Erro ao obter ticket por ID:', error);
       res.status(500).json({ error: error.message });
     }
@@ -70,7 +74,6 @@ getAllTickets: async (req, res) => {
   }
 },
 
-
   // Rota POST /tickets - Cria um novo ticket
   createTicket: async (req, res) => {
     try {
@@ -91,7 +94,7 @@ getAllTickets: async (req, res) => {
       });
 
     } catch (error) {
-      console.error('Erro ao criar ticket:', error);
+      console.error('Erro na função createTicket:', error);
       res.status(500).json({ error: error.message });
     }
   },
@@ -120,7 +123,7 @@ getAllTickets: async (req, res) => {
       });
 
     } catch (error) {
-      console.error('Erro ao atualizar status:', error);
+      console.error('Erro na função updateTicketStatus:', error);
       res.status(500).json({ error: error.message });
     }
   },
@@ -145,7 +148,7 @@ getAllTickets: async (req, res) => {
 
       res.json({ message: 'Ticket deletado com sucesso.' });
     } catch (error) {
-      console.error('Erro ao deletar ticket:', error);
+      console.error('EErro na função deleteTicket:', error);
       res.status(500).json({ error: error.message });
     }
   }

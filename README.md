@@ -1,4 +1,6 @@
 # GLPI Integration
+# Criado por OliveiraX
+# GitHub: https://github.com/OliveiraaX
 
 Este projeto é uma API desenvolvida com **Node.js** e **Express**, focada na integração com o sistema de gerenciamento de ativos e chamados **GLPI**.
 
@@ -13,7 +15,8 @@ Este projeto é uma API desenvolvida com **Node.js** e **Express**, focada na in
 
 - Autenticação com API do GLPI
 - Criação e atualização de tickets
-- Consulta de ativos, usuários e chamados
+- Consulta de tickets ativos
+- Deletar e listar tickets
 - Integração com endpoints personalizados do GLPI
 - Gerenciamento de sessão via token
 

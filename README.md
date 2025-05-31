@@ -1,6 +1,5 @@
 # GLPI Integration
 Criado por OliveiraX
-GitHub: https://github.com/OliveiraaX
 
 Este projeto é uma API desenvolvida com **Node.js** e **Express**, focada na integração com o sistema de gerenciamento de ativos e chamados **GLPI**.
 

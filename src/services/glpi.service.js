@@ -1,7 +1,10 @@
+// Importa a biblioteca Axios para fazer requisições HTTP
 const axios = require('axios');
 
+// chamar variavies de ambiente do .env  
 require('dotenv').config();
 
+// Cria uma instância do Axios
 const api = axios.create({
   baseURL: `${process.env.GLPI_API_URL}/apirest.php`,
   headers: {
@@ -9,8 +12,10 @@ const api = axios.create({
   }
 });
 
+// Variável global para armazenar o token de sessão do GLPI
 let sessionToken = null;
 
+// Inicia uma nova sessão GLPI e armazena o token de sessão
 async function initSession() {
   const response = await api.get('/initSession', {
     headers: { Authorization: `user_token ${process.env.GLPI_USER_TOKEN}` }
@@ -18,6 +23,7 @@ async function initSession() {
   sessionToken = response.data.session_token;
 }
 
+// Encerra a sessão GLPI ativa, se houver
 async function killSession() {
   if (sessionToken) {
     await api.get('/killSession', {
@@ -27,6 +33,7 @@ async function killSession() {
   }
 }
 
+// Recupera os dados de um ticket específico pelo ID
 async function getTicketById(id) {
   await initSession();
   try {
@@ -35,10 +42,11 @@ async function getTicketById(id) {
     });
     return response.data;
   } finally {
-    await killSession();
+    await killSession(); // Garante que a sessão seja encerrada, mesmo que ocorra erro
   }
 }
 
+// Cria um novo ticket com os dados fornecidos
 async function createTicket(data) {
   await initSession();
   try {
@@ -51,6 +59,7 @@ async function createTicket(data) {
   }
 }
 
+// Atualiza o status 
 async function updateTicketStatus(ticketData) {
   await initSession();
   try {
@@ -63,6 +72,7 @@ async function updateTicketStatus(ticketData) {
   }
 }
 
+// Exclui um ticket pelo ID
 async function deleteTicket(id) {
   await initSession();
   try {
@@ -75,6 +85,7 @@ async function deleteTicket(id) {
   }
 }
 
+// Recupera a lista de todos os tickets disponíveis
 async function getTickets() {
   await initSession();
   try {
@@ -87,6 +98,7 @@ async function getTickets() {
   }
 }
 
+// Exporta as funções para serem usadas em outros módulos
 module.exports = {
   getTicketById,
   getTickets, 

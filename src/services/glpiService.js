@@ -1,4 +1,7 @@
+// Importa o Axios para realizar requisições HTTP
 const axios = require('axios');
+
+// Carregar variáveis.
 require('dotenv').config(); 
 
 // Instância do Axios configurada com base na URL da API
@@ -9,7 +12,7 @@ const api = axios.create({
   }
 });
 
-let sessionToken = null; // Token de sessão mantido em memória temporária
+let sessionToken = null;  // Armazena o token da sessão atual
 
 // Inicializa uma sessão na API do GLPI
 async function initSession() {
@@ -50,6 +53,7 @@ async function createTicket(ticketData) {
   return response.data;
 }
 
+// Exporta as funções para uso externo
 module.exports = {
   getTickets,
   createTicket

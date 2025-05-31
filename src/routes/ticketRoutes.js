@@ -1,14 +1,16 @@
+// Importa o framework Express e o serviço GLPI
 const express = require('express');
 const router = express.Router();
 const glpiService = require('../services/glpiService');
+const { error } = require('console');
 
 // Rota para listar todos os tickets
 router.get('/tickets/:id', async (req, res) => {
   try {
     const id = req.params.id;
     const ticket = await glpiService.getTickets(id);
-    res.json(ticket);
-    
+    res.json(id);
+    console.error('Erro na listagem de ticket:', error)
   } catch (error) {
     console.error('Error ao obter ticket por ID:', error);
     res.status(500).json({ error: error.message });
@@ -31,6 +33,7 @@ router.post('/tickets', async (req, res) => {
         message: 'Ticket criado com sucesso!',
         ticketId: ticket.id
       });
+      console.error('Erro ao criar ticket:', error)
     } else {
       console.warn('Ticket pode não ter sido criado corretamente:', ticket);
       res.status(202).json({

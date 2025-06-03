@@ -1,10 +1,6 @@
-// Importa a biblioteca Axios para fazer requisições HTTP
 const axios = require('axios');
-
-// chamar variavies de ambiente do .env  
 require('dotenv').config();
 
-// Cria uma instância do Axios
 const api = axios.create({
   baseURL: `${process.env.GLPI_API_URL}/apirest.php`,
   headers: {
@@ -12,18 +8,19 @@ const api = axios.create({
   }
 });
 
-// Variável global para armazenar o token de sessão do GLPI
 let sessionToken = null;
 
-// Inicia uma nova sessão GLPI e armazena o token de sessão
-async function initSession() {
-  const response = await api.get('/initSession', {
-    headers: { Authorization: `user_token ${process.env.GLPI_USER_TOKEN}` }
-  });
-  sessionToken = response.data.session_token;
+// Verifica e garante que há uma sessão válida
+async function ensureSession() {
+  if (!sessionToken) {
+    const response = await api.get('/initSession', {
+      headers: { Authorization: `user_token ${process.env.GLPI_USER_TOKEN}` }
+    });
+    sessionToken = response.data.session_token;
+  }
 }
 
-// Encerra a sessão GLPI ativa, se houver
+// Encerra a sessão (pode ser chamado manualmente, mas não mais obrigatório em cada função)
 async function killSession() {
   if (sessionToken) {
     await api.get('/killSession', {
@@ -33,114 +30,114 @@ async function killSession() {
   }
 }
 
-// Recupera os dados de um ticket específico pelo ID
+// GET /Ticket/:id - Retorna dados completos do ticket com o agente
 async function getTicketById(id) {
-  await initSession();
+  // Garante que a sessão esteja ativa antes de continuar
+  await ensureSession();
+
   try {
-    const response = await api.get(`/Ticket/${id}`, {
+    // Faz uma requisição para obter os dados do ticket pelo ID
+    const ticketRes = await api.get(`/Ticket/${id}`, {
+      headers: { 'Session-Token': sessionToken } 
+    });
+
+    // Obtém o objeto ticket da resposta
+    const ticket = ticketRes.data;
+
+    // Inicializa o campo agent como null (ainda não atribuído)
+    ticket.agent = null;
+
+    // Busca os usuários relacionados ao ticket (usuários vinculados ao ticket)
+    const usersRes = await api.get(`/Ticket/${id}/Ticket_User`, {
       headers: { 'Session-Token': sessionToken }
     });
-    return response.data;
-  } finally {
-    await killSession(); // Garante que a sessão seja encerrada, mesmo que ocorra erro
+
+    // Encontra o usuário responsável pelo ticket (tipo 2 representa o responsável/agente)
+    const responsible = usersRes.data.find(u => u.type === 2);
+
+    if (responsible) {
+      // Se encontrar o responsável, busca os detalhes desse usuário pelo ID
+      const userRes = await api.get(`/User/${responsible.users_id}`, {
+        headers: { 'Session-Token': sessionToken }
+      });
+
+      // Atribui o nome do agente responsável ao campo agent do ticket
+      ticket.agent = userRes.data.name;
+    }
+
+    // Retorna o ticket com os dados, incluindo o agente (se encontrado)
+    return ticket;
+
+  } catch (err) {
+    // Em caso de erro, exibe uma mensagem no console e relança o erro para tratamento externo
+    console.error('Erro ao buscar ticket:', err.message);
+    throw err;
   }
 }
 
-// Cria um novo ticket com os dados fornecidos
+
+// POST /Ticket - Cria um novo ticket
 async function createTicket(data) {
-  await initSession();
-  try {
-    const response = await api.post('/Ticket', data, {
-      headers: { 'Session-Token': sessionToken }
-    });
-    return response.data;
-  } finally {
-    await killSession();
-  }
+  await ensureSession();
+  const response = await api.post('/Ticket', data, {
+    headers: { 'Session-Token': sessionToken }
+  });
+  return response.data;
 }
 
-// Atualiza o status 
+// PUT /Ticket/:id - Atualiza o status de um ticket
 async function updateTicketStatus(ticketData) {
-  await initSession();
-  try {
-    const response = await api.put('/Ticket/' + ticketData.input.id, ticketData, {
-      headers: { 'Session-Token': sessionToken }
-    });
-    return response.data;
-  } finally {
-    await killSession();
-  }
+  await ensureSession();
+  const response = await api.put('/Ticket/' + ticketData.input.id, ticketData, {
+    headers: { 'Session-Token': sessionToken }
+  });
+  return response.data;
 }
 
-// Exclui um ticket pelo ID
+// DELETE /Ticket/:id - Remove um ticket
 async function deleteTicket(id) {
-  await initSession();
-  try {
-    const response = await api.delete(`/Ticket/${id}`, {
-      headers: { 'Session-Token': sessionToken }
-    });
-    return response.data;
-  } finally {
-    await killSession();
-  }
+  await ensureSession();
+  const response = await api.delete(`/Ticket/${id}`, {
+    headers: { 'Session-Token': sessionToken }
+  });
+  return response.data;
 }
 
-// Recupera a lista de todos os tickets disponíveis
+// GET /Ticket - Lista todos os tickets
 async function getTickets() {
-  await initSession();
-  try {
-    const response = await api.get('/Ticket', {
-      headers: { 'Session-Token': sessionToken }
-    });
-    return response.data;
-  } catch(error) {
-    console.error('Erro ao listar usuários:', error.response?.data || error.message);
-    throw error;
-  } finally {
-    await killSession();
-  }
+  await ensureSession();
+  const response = await api.get('/Ticket', {
+    headers: { 'Session-Token': sessionToken }
+  });
+  return response.data;
 }
 
-// função para buscar todos os usuários
-async function getAllUsers(){
-  await initSession();
-  try {
-    const response = await api.get('/User', {
-      headers: { 'Session-Token': sessionToken }
-    });
-    return response.data;
-  } catch(error) {
-    console.error('Erro ao listar usuários:', error.response?.data || error.message);
-    throw error;
-  } finally {
-    await killSession();
-  }
+// GET /User - Lista todos os usuários
+async function getAllUsers() {
+  await ensureSession();
+  const response = await api.get('/User', {
+    headers: { 'Session-Token': sessionToken }
+  });
+  return response.data;
 }
 
+// GET /User/:id - Retorna um usuário pelo ID
 async function getUserById(id) {
-  await initSession();
-  try {
-    const response = await api.get(`/User/${id}`, {
-      headers: { 'Session-Token': sessionToken }
-    });
-    return response.data;
-  } catch (error) {
-    console.error('Erro ao buscar usuário:', error.response?.data || error.message);
-    throw error;
-  } finally {
-    await killSession();
-  }
+  await ensureSession();
+  const response = await api.get(`/User/${id}`, {
+    headers: { 'Session-Token': sessionToken }
+  });
+  return response.data;
 }
-// Exporta as funções para serem usadas em outros módulos
+
 module.exports = {
   getTicketById,
-  getTickets, 
+  getTickets,
   createTicket,
   updateTicketStatus,
   deleteTicket,
-  killSession,
-  initSession,
   getAllUsers,
   getUserById,
-
+  ensureSession, 
+  killSession   
 };

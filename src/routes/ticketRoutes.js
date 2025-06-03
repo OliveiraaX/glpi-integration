@@ -1,23 +1,21 @@
+// Rotas de tickets - Define as rotas HTTP relacionadas a tickets
 const express = require('express');
 const router = express.Router();
-
-// Importa o controller de tickets que contém as funções de lógica de cada rota
 const ticketsController = require('../controllers/tickets.controller');
-const usersController = require('../controllers/users.controller');
 
-// GET específico (por ID)
+// GET /api/tickets/:id - Retorna um ticket pelo ID
 router.get('/:id', ticketsController.getTicketById);
 
-// POST - Cria um novo ticket
+// POST /api/tickets - Cria um novo ticket
 router.post('/', ticketsController.createTicket);
 
-// PUT - Atualiza status do ticket
+// PUT /api/tickets/:id/status - Atualiza o status de um ticket
 router.put('/:id/status', ticketsController.updateTicketStatus);
 
-// DELETE - Remove um ticket
+// DELETE /api/tickets/:id - Remove um ticket
 router.delete('/:id', ticketsController.deleteTicket);
 
-// GET geral - Lista todos os tickets
-router.get('/', ticketsController.getAllTickets); 
+// GET /api/tickets - Lista todos os tickets ativos
+router.get('/', ticketsController.getAllTickets);
 
 module.exports = router;
